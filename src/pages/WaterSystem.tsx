@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Plus, Search, Printer, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/sonner";
@@ -22,9 +22,9 @@ export default function WaterSystem() {
   const [isAddNeighborOpen, setIsAddNeighborOpen] = useState(false);
   const [selectedNeighborId, setSelectedNeighborId] = useState<string | null>(null);
 
-  const handleAddNeighbor = (newNeighbor: Omit<Neighbor, "id" | "joinDate">) => {
+  const handleAddNeighbor = (data: { name: string; address?: string }) => {
     const neighbor: Neighbor = {
-      ...newNeighbor,
+      ...data,
       id: crypto.randomUUID(),
       joinDate: new Date().toISOString(),
       lastReadingDate: undefined,
@@ -110,9 +110,9 @@ export default function WaterSystem() {
   };
 
   const filteredNeighbors = useMemo(() => {
-    return neighbors.filter(n => 
-      n.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (n.address && n.address.toLowerCase().includes(searchTerm.toLowerCase()))
+    return (neighbors || []).filter(n => 
+      (n?.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (n?.address ? n.address.toLowerCase().includes(searchTerm.toLowerCase()) : false)
     );
   }, [neighbors, searchTerm]);
 

@@ -2,17 +2,17 @@ export interface Neighbor {
   id: string;
   name: string;
   address?: string;
+  joinDate?: string;
   lastReadingDate?: string;
-  totalUnpaid?: number;
+  lastReadingVolume?: number;
+  totalUnpaid: number;
 }
 
 export interface Reading {
   id: string;
   neighborId: string;
-  usage: number; // in m3
-  cost: number;
-  paid: boolean;
+  volume: number; // current meter reading in m³
+  totalCost: number;
+  isPaid: boolean;
   date: string; // ISO string
 }
-
-// types/index.ts

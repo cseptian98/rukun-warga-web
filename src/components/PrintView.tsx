@@ -11,14 +11,14 @@ export function PrintView({ readings, neighbors, monthName }: PrintViewProps) {
   const getNeighborName = (id: string) => neighbors.find(n => n.id === id)?.name || "Unknown";
   
   // Only show unpaid readings or all for the current month summary
-  const unpaidReadings = readings.filter(r => !r.paid);
+  const unpaidReadings = readings.filter(r => !r.isPaid);
 
   return (
     <div className="hidden print:block p-8 bg-white text-black min-h-screen">
       <div className="text-center mb-8 border-b-4 border-black pb-4">
         <h1 className="text-4xl font-black uppercase">Neighborhood Water Report</h1>
         <p className="text-xl font-bold mt-2">Summary for: {monthName}</p>
-        <p className="text-sm italic mt-1 italic">Generated on {new Date().toLocaleDateString()}</p>
+        <p className="text-sm italic mt-1">Generated on {new Date().toLocaleDateString()}</p>
       </div>
 
       <div className="space-y-6">
@@ -38,8 +38,8 @@ export function PrintView({ readings, neighbors, monthName }: PrintViewProps) {
               {unpaidReadings.map(reading => (
                 <tr key={reading.id} className="border-b-2 border-black">
                   <td className="border-r-2 border-black p-2 font-bold">{getNeighborName(reading.neighborId)}</td>
-                  <td className="border-r-2 border-black p-2 text-right font-mono">{reading.usage.toFixed(2)}m³</td>
-                  <td className="p-2 text-right font-black">${reading.cost.toFixed(2)}</td>
+                  <td className="border-r-2 border-black p-2 text-right font-mono">{(reading.volume ?? 0).toFixed(2)}m³</td>
+                  <td className="p-2 text-right font-black">${(reading.totalCost ?? 0).toFixed(2)}</td>
                 </tr>
               ))}
             </tbody>
@@ -47,7 +47,7 @@ export function PrintView({ readings, neighbors, monthName }: PrintViewProps) {
               <tr className="bg-slate-100">
                 <th colSpan={2} className="border-r-2 border-black p-2 text-right font-black uppercase">Total Outstanding:</th>
                 <th className="p-2 text-right font-black text-2xl">
-                  ${unpaidReadings.reduce((sum, r) => sum + r.cost, 0).toFixed(2)}
+                  ${unpaidReadings.reduce((sum, r) => sum + (r.totalCost ?? 0), 0).toFixed(2)}
                 </th>
               </tr>
             </tfoot>
