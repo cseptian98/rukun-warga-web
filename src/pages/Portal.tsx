@@ -38,12 +38,12 @@ export default function Portal() {
       active: false,
     },
     {
-      title: "Announcements",
-      description: "Broadcast important messages to all neighborhood residents.",
+      title: "Announcements & News",
+      description: "Broadcast important messages, news, and community schedules.",
       icon: <BellRing className="w-8 h-8 text-rose-500" />,
-      link: "#",
+      link: "/announcements",
       color: "from-rose-500/20 to-rose-600/10",
-      active: false,
+      active: true,
     }
   ];
 
