@@ -6,38 +6,21 @@ import { toast } from "sonner";
 import { motion, AnimatePresence } from "motion/react";
 import { Link } from "react-router-dom";
 
-import { Neighbor, Reading } from "../types";
+import { Neighbor, Reading } from "@/types";
 import { NeighborCard } from "@/components/NeighborCard";
 import { HistoryTable } from "@/components/HistoryTable";
 import { AddNeighborDialog } from "@/components/AddNeighborDialog";
 import { AddReadingDialog } from "@/components/AddReadingDialog";
 import { PrintView } from "@/components/PrintView";
-
-const STORAGE_KEY_NEIGHBORS = 'water_system_neighbors';
-const STORAGE_KEY_READINGS = 'water_system_readings';
+import { useWaterSystem } from "@/hooks/useWaterSystem";
+import { calculateWaterCost } from "@/utils/billing";
 
 export default function WaterSystem() {
-  const [neighbors, setNeighbors] = useState<Neighbor[]>([]);
-  const [readings, setReadings] = useState<Reading[]>([]);
+  const { neighbors, setNeighbors, readings, setReadings } = useWaterSystem();
+  
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddNeighborOpen, setIsAddNeighborOpen] = useState(false);
   const [selectedNeighborId, setSelectedNeighborId] = useState<string | null>(null);
-
-  useEffect(() => {
-    const savedNeighbors = localStorage.getItem(STORAGE_KEY_NEIGHBORS);
-    const savedReadings = localStorage.getItem(STORAGE_KEY_READINGS);
-    
-    if (savedNeighbors) setNeighbors(JSON.parse(savedNeighbors));
-    if (savedReadings) setReadings(JSON.parse(savedReadings));
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY_NEIGHBORS, JSON.stringify(neighbors));
-  }, [neighbors]);
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY_READINGS, JSON.stringify(readings));
-  }, [readings]);
 
   const handleAddNeighbor = (newNeighbor: Omit<Neighbor, "id" | "joinDate">) => {
     const neighbor: Neighbor = {
@@ -59,14 +42,7 @@ export default function WaterSystem() {
     const previousVolume = neighbor.lastReadingVolume || 0;
     const usage = Math.max(0, newReading.volume - previousVolume);
     
-    let totalCost = 0;
-    if (usage <= 10) {
-      totalCost = usage * 1.00;
-    } else if (usage <= 20) {
-      totalCost = (10 * 1.00) + ((usage - 10) * 1.50);
-    } else {
-      totalCost = (10 * 1.00) + (10 * 1.50) + ((usage - 20) * 2.00);
-    }
+    const totalCost = calculateWaterCost(usage);
 
     const reading: Reading = {
       ...newReading,
