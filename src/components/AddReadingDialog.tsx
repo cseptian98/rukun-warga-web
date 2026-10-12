@@ -2,9 +2,7 @@ import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { calculateWaterCost } from "@/lib/billing";
-
-// Fixed imports
+import { calculateWaterCost } from "@/utils/billing";
 import { 
   Dialog as ShadDialog, 
   DialogContent as ShadDialogContent, 
@@ -18,7 +16,7 @@ interface AddReadingDialogProps {
   neighborId: string;
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (usage: number, cost: number) => void;
+  onSubmit: (data: { neighborId: string; volume: number; date: string }) => void;
 }
 
 export function AddReadingDialog({ neighborName, neighborId, isOpen, onClose, onSubmit }: AddReadingDialogProps) {
@@ -30,7 +28,11 @@ export function AddReadingDialog({ neighborName, neighborId, isOpen, onClose, on
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (usageNum <= 0) return;
-    onSubmit(usageNum, cost);
+    onSubmit({
+      neighborId,
+      volume: usageNum,
+      date: new Date().toISOString()
+    });
     setUsage("");
     onClose();
   };

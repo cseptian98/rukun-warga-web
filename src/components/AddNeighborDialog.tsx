@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 interface AddNeighborDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (name: string, address: string) => void;
+  onSubmit: (data: { name: string; address?: string }) => void;
 }
 
 export function AddNeighborDialog({ isOpen, onClose, onSubmit }: AddNeighborDialogProps) {
@@ -23,7 +23,7 @@ export function AddNeighborDialog({ isOpen, onClose, onSubmit }: AddNeighborDial
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
-    onSubmit(name, address);
+    onSubmit({ name: name.trim(), address: address.trim() || undefined });
     setName("");
     setAddress("");
     onClose();
