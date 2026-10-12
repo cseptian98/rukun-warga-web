@@ -33,9 +33,9 @@ export default function Portal() {
       title: "Treasury & Dues",
       description: "Track monthly RW dues, expenditures, and financial reports.",
       icon: <Wallet className="w-8 h-8 text-amber-500" />,
-      link: "#",
+      link: "/treasury",
       color: "from-amber-500/20 to-amber-600/10",
-      active: false,
+      active: true,
     },
     {
       title: "Announcements & News",
