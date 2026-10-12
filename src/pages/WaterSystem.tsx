@@ -255,7 +255,7 @@ export default function WaterSystem() {
 
       {/* Footer */}
       <footer className="bg-slate-900 text-slate-400 p-3 shrink-0 flex justify-between items-center text-[10px] font-semibold uppercase tracking-widest print:hidden mt-auto">
-        <div className="max-w-[1600px] w-full mx-auto flex justify-between items-center">
+        <div className="max-w-[1600px] w-full mx-auto flex justify-between items-center px-4 sm:px-6">
           <div className="flex gap-6 items-center">
             <span>Session: {new Date().toLocaleDateString('default', { month: 'short', year: 'numeric' })}</span>
             <span className="hidden sm:inline opacity-30">|</span>

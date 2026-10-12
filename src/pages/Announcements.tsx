@@ -184,14 +184,16 @@ export default function Announcements() {
   const recentNews = filteredNews.filter(n => n.id !== mainTrending?.id);
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans flex flex-col antialiased selection:bg-rose-100 selection:text-rose-900 relative">
+    <div className="min-h-screen bg-slate-50 font-sans flex flex-col antialiased selection:bg-rose-100 selection:text-rose-900 relative overflow-x-hidden">
       {/* Background Glow */}
-      <div className="absolute top-[-10%] right-[-5%] w-[45%] h-[45%] bg-rose-100/40 rounded-full blur-[130px] pointer-events-none" />
-      <div className="absolute top-[20%] left-[-10%] w-[40%] h-[40%] bg-indigo-100/30 rounded-full blur-[130px] pointer-events-none" />
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+        <div className="absolute top-[-10%] right-[-5%] w-[45%] h-[45%] bg-rose-100/40 rounded-full blur-[130px]" />
+        <div className="absolute top-[20%] left-[-10%] w-[40%] h-[40%] bg-indigo-100/30 rounded-full blur-[130px]" />
+      </div>
 
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-xl sticky top-0 z-30 border-b border-slate-200/80 shadow-xs">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex flex-wrap gap-4 justify-between items-center">
+      <header className="bg-white/80 backdrop-blur-xl sticky top-0 z-30 border-b border-slate-200/80 shadow-xs print:hidden">
+        <div className="max-w-[1600px] mx-auto py-4 flex flex-wrap gap-4 justify-between items-center">
           <div className="flex items-center gap-3">
             <div className="bg-gradient-to-br from-rose-500 to-rose-600 p-2.5 rounded-xl shadow-md shadow-rose-200">
               <Megaphone className="w-5 h-5 text-white" />
@@ -199,10 +201,10 @@ export default function Announcements() {
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-xl font-extrabold text-slate-800 tracking-tight leading-none">
-                  Warga<span className="text-rose-600">News</span> Portal
+                  Kampung<span className="text-rose-600">Melati</span> News
                 </h1>
                 <span className="bg-rose-50 text-rose-600 text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border border-rose-100">
-                  RW 04
+                  RW 02
                 </span>
               </div>
               <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-widest mt-1">
@@ -216,7 +218,7 @@ export default function Announcements() {
               <Button 
                 variant="ghost" 
                 size="sm"
-                className="text-slate-600 hover:text-indigo-600 hover:bg-slate-100 font-semibold rounded-xl text-xs flex items-center gap-1.5"
+                className="text-slate-600 hover:text-rose-600 hover:bg-rose-50 font-semibold rounded-xl text-xs flex items-center gap-1.5 transition-all"
               >
                 <ArrowLeft className="w-4 h-4" />
                 Back to Portal
@@ -227,8 +229,8 @@ export default function Announcements() {
       </header>
 
       {/* Hero Banner with Search & Category Pills */}
-      <div className="bg-white border-b border-slate-200/70 pt-8 pb-6 px-6">
-        <div className="max-w-7xl mx-auto">
+      <div className="bg-white border-b border-slate-200/70 pt-8 pb-6 px-4 sm:px-6 relative z-10 print:hidden">
+        <div className="max-w-[1600px] mx-auto">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-slate-100">
             <div>
               <span className="text-rose-600 text-xs font-bold uppercase tracking-widest flex items-center gap-1.5 mb-1.5">
@@ -251,7 +253,7 @@ export default function Announcements() {
                 placeholder="Search headlines or tags..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-700 focus:outline-none focus:border-rose-400 focus:bg-white transition-all shadow-2xs"
+                className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-700 focus:outline-none focus:border-rose-400 focus:ring-4 focus:ring-rose-100 focus:bg-white transition-all shadow-2xs"
               />
             </div>
           </div>
@@ -276,7 +278,7 @@ export default function Announcements() {
       </div>
 
       {/* Main News Layout */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-6 space-y-10">
+      <main className="flex-1 max-w-[1600px] w-full mx-auto p-4 sm:p-6 space-y-10 relative z-10">
         
         {/* ========================================================= */}
         {/* SECTION 1: TRENDING NEWS (Big Content / Hero Showcase)    */}
@@ -607,10 +609,19 @@ export default function Announcements() {
       </AnimatePresence>
 
       {/* Footer */}
-      <footer className="mt-auto bg-slate-900 text-slate-400 p-6 text-center text-xs font-semibold uppercase tracking-widest">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
-          <p>RW 04 Kampung Melati SuperApp &bull; Information Broadcast System</p>
-          <p className="text-slate-500">Live Community Updates &copy; {new Date().getFullYear()}</p>
+      <footer className="bg-slate-900 text-slate-400 p-3 shrink-0 flex justify-between items-center text-[10px] font-semibold uppercase tracking-widest print:hidden mt-auto relative z-10">
+        <div className="max-w-[1600px] w-full mx-auto flex justify-between items-center px-4 sm:px-6">
+          <div className="flex gap-6 items-center">
+            <span>Session: {new Date().toLocaleDateString('default', { month: 'short', year: 'numeric' })}</span>
+            <span className="hidden sm:inline opacity-30">|</span>
+            <span className="hidden sm:inline">Portal: WargaNews Active</span>
+          </div>
+          <div className="flex gap-4 items-center">
+            <span className="flex items-center gap-2 text-emerald-400 font-bold">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]"></span> 
+              System Active
+            </span>
+          </div>
         </div>
       </footer>
     </div>
