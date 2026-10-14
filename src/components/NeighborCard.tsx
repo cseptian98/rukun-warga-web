@@ -2,6 +2,7 @@ import React from 'react';
 import { Button } from "@/components/ui/button";
 import { User, MapPin, Calendar, PlusCircle, Droplets } from "lucide-react";
 import { Neighbor } from "@/types";
+import { usePermission } from "@/hooks/usePermission";
 
 interface NeighborCardProps {
   neighbor: Neighbor;
@@ -9,6 +10,9 @@ interface NeighborCardProps {
 }
 
 export const NeighborCard: React.FC<NeighborCardProps> = ({ neighbor, onAddReading }) => {
+  const { can, isAdmin } = usePermission();
+  const canManageWater = can('water:manage') || isAdmin;
+
   return (
     <div className="bg-white p-4 border border-slate-100 hover:border-indigo-100 rounded-xl hover:shadow-lg hover:shadow-indigo-100/50 transition-all duration-300 group relative overflow-hidden">
       <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-indigo-50 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -23,14 +27,16 @@ export const NeighborCard: React.FC<NeighborCardProps> = ({ neighbor, onAddReadi
             </p>
           )}
         </div>
-        <Button 
-          onClick={() => onAddReading(neighbor.id)}
-          size="sm"
-          className="bg-indigo-50 text-indigo-700 text-[10px] px-3 py-1.5 rounded-lg font-bold hover:bg-indigo-600 hover:text-white transition-all shadow-none flex items-center gap-1 uppercase tracking-wider"
-        >
-          <Droplets className="w-3 h-3" />
-          Read
-        </Button>
+        {canManageWater && (
+          <Button 
+            onClick={() => onAddReading(neighbor.id)}
+            size="sm"
+            className="bg-indigo-50 text-indigo-700 text-[10px] px-3 py-1.5 rounded-lg font-bold hover:bg-indigo-600 hover:text-white transition-all shadow-none flex items-center gap-1 uppercase tracking-wider"
+          >
+            <Droplets className="w-3 h-3" />
+            Read
+          </Button>
+        )}
       </div>
       
       <div className="mt-4 pt-3 border-t border-slate-50 flex justify-between items-center text-[10px] relative z-10">

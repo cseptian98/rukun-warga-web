@@ -36,6 +36,7 @@ import {
 import { Reading, Neighbor } from "@/types";
 import { StatusBadge } from "@/components/StatusBadge";
 import { motion, AnimatePresence } from "motion/react";
+import { usePermission } from "@/hooks/usePermission";
 
 interface HistoryTableProps {
   readings: Reading[];
@@ -49,6 +50,9 @@ export interface EnrichedReading extends Reading {
 }
 
 export function HistoryTable({ readings, neighbors, onTogglePaid, onDeleteReading }: HistoryTableProps) {
+  const { can, isAdmin } = usePermission();
+  const canManageWater = can('water:manage') || isAdmin;
+
   const [sorting, setSorting] = useState<SortingState>([
     { id: 'date', desc: true }
   ]);
@@ -225,6 +229,13 @@ export function HistoryTable({ readings, neighbors, onTogglePaid, onDeleteReadin
       ),
       cell: ({ row }) => {
         const reading = row.original;
+        if (!canManageWater) {
+          return (
+            <div className="flex items-center justify-end">
+              <span className="text-right text-[11px] text-slate-400 font-medium italic">Read-only</span>
+            </div>
+          );
+        }
         return (
           <div className="flex items-center justify-end space-x-2">
             <Button 
@@ -255,7 +266,7 @@ export function HistoryTable({ readings, neighbors, onTogglePaid, onDeleteReadin
         );
       },
     },
-  ], [neighbors, onTogglePaid, onDeleteReading]);
+  ], [neighbors, onTogglePaid, onDeleteReading, canManageWater]);
 
   const table = useReactTable<EnrichedReading>({
     data: tableData,

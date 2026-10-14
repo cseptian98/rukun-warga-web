@@ -27,6 +27,7 @@ export const DEMO_PERSONAS: Record<RoleName, UserProfile> = {
       'treasury:read',
       'treasury:write',
       'water:read',
+      'water:manage',
     ],
     avatar: '👩‍💼',
     unitNumber: 'Blok B3 No. 12',
@@ -49,6 +50,7 @@ export const DEMO_PERSONAS: Record<RoleName, UserProfile> = {
 
 const TOKEN_STORAGE_KEY = 'ksm_auth_token';
 const ROLE_STORAGE_KEY = 'ksm_active_role';
+const USER_STORAGE_KEY = 'ksm_active_user';
 
 function generateMockJwt(user: UserProfile): string {
   try {
@@ -76,6 +78,10 @@ export const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserProfile | null>(() => {
     try {
+      const savedUser = localStorage.getItem(USER_STORAGE_KEY);
+      if (savedUser) {
+        return JSON.parse(savedUser) as UserProfile;
+      }
       const savedRole = localStorage.getItem(ROLE_STORAGE_KEY) as RoleName | null;
       if (savedRole && DEMO_PERSONAS[savedRole]) {
         return DEMO_PERSONAS[savedRole];
@@ -83,35 +89,124 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch {
       // Fallback
     }
-    return DEMO_PERSONAS.admin;
+    return null;
   });
 
   const [token, setToken] = useState<string | null>(() => {
     try {
       const savedToken = localStorage.getItem(TOKEN_STORAGE_KEY);
       if (savedToken) return savedToken;
-      const initialUser = DEMO_PERSONAS.admin;
-      const newToken = generateMockJwt(initialUser);
-      localStorage.setItem(TOKEN_STORAGE_KEY, newToken);
-      localStorage.setItem(ROLE_STORAGE_KEY, initialUser.role);
-      return newToken;
     } catch {
-      return null;
+      // Fallback
     }
+    return null;
   });
 
-  const login = (role: RoleName) => {
-    const persona = DEMO_PERSONAS[role];
-    if (!persona) return;
-    const newToken = generateMockJwt(persona);
-    setUser(persona);
-    setToken(newToken);
-    try {
-      localStorage.setItem(ROLE_STORAGE_KEY, role);
-      localStorage.setItem(TOKEN_STORAGE_KEY, newToken);
-    } catch {
-      // Ignore
+  const login = async (credentialsOrRole: any): Promise<boolean> => {
+    if (typeof credentialsOrRole === 'string') {
+      const persona = DEMO_PERSONAS[credentialsOrRole as RoleName];
+      if (!persona) return false;
+      const newToken = generateMockJwt(persona);
+      setUser(persona);
+      setToken(newToken);
+      try {
+        localStorage.setItem(ROLE_STORAGE_KEY, credentialsOrRole);
+        localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(persona));
+        localStorage.setItem(TOKEN_STORAGE_KEY, newToken);
+      } catch {
+        // Ignore
+      }
+      return true;
     }
+
+    if (credentialsOrRole && typeof credentialsOrRole === 'object') {
+      if (credentialsOrRole.role && DEMO_PERSONAS[credentialsOrRole.role as RoleName]) {
+        return login(credentialsOrRole.role);
+      }
+
+      const rawId = (credentialsOrRole.username || credentialsOrRole.email || '').trim().toLowerCase();
+      const password = credentialsOrRole.password || '';
+
+      if (!rawId) {
+        throw new Error('Email atau Username wajib diisi.');
+      }
+
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            username: credentialsOrRole.username || credentialsOrRole.email,
+            email: credentialsOrRole.email || credentialsOrRole.username,
+            password: credentialsOrRole.password,
+          }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const jwtToken = data.token || data.access_token || generateMockJwt(DEMO_PERSONAS.admin);
+          const backendUser = data.user || {};
+          const role = ((backendUser.roles && backendUser.roles[0]) as RoleName) || 'resident';
+          const profile: UserProfile = {
+            id: backendUser.id || `user-${Date.now()}`,
+            name: backendUser.full_name || backendUser.username || DEMO_PERSONAS[role]?.name || rawId,
+            email: backendUser.email || DEMO_PERSONAS[role]?.email,
+            username: backendUser.username || rawId,
+            role: role,
+            permissions: (backendUser.permissions as any) || DEMO_PERSONAS[role]?.permissions || [],
+            avatar: DEMO_PERSONAS[role]?.avatar || '👤',
+            unitNumber: DEMO_PERSONAS[role]?.unitNumber || 'RW 05',
+            phone: DEMO_PERSONAS[role]?.phone,
+          };
+          setUser(profile);
+          setToken(jwtToken);
+          try {
+            localStorage.setItem(ROLE_STORAGE_KEY, profile.role);
+            localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(profile));
+            localStorage.setItem(TOKEN_STORAGE_KEY, jwtToken);
+          } catch {
+            // Ignore
+          }
+          return true;
+        }
+      } catch {
+        // Network / offline fallback
+      }
+
+      let matchedRole: RoleName | null = null;
+      if (
+        rawId === 'admin' ||
+        rawId === 'admin@kampungmelati.id' ||
+        rawId === 'rw05.hartono@kampungmelati.id'
+      ) {
+        if (password === 'admin123' || password === '') {
+          matchedRole = 'admin';
+        }
+      } else if (
+        rawId === 'treasurer' ||
+        rawId === 'treasurer@kampungmelati.id' ||
+        rawId === 'bendahara.ratna@kampungmelati.id'
+      ) {
+        if (password === 'bendahara123' || password === '') {
+          matchedRole = 'treasurer';
+        }
+      } else if (
+        rawId === 'resident' ||
+        rawId === 'resident@kampungmelati.id' ||
+        rawId === 'budi.santoso@gmail.com'
+      ) {
+        if (password === 'warga123' || password === '') {
+          matchedRole = 'resident';
+        }
+      }
+
+      if (matchedRole && DEMO_PERSONAS[matchedRole]) {
+        return login(matchedRole);
+      }
+
+      throw new Error('Kredensial tidak valid. Silakan periksa email/username dan password.');
+    }
+
+    return false;
   };
 
   const logout = () => {
@@ -119,6 +214,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setToken(null);
     try {
       localStorage.removeItem(ROLE_STORAGE_KEY);
+      localStorage.removeItem(USER_STORAGE_KEY);
       localStorage.removeItem(TOKEN_STORAGE_KEY);
     } catch {
       // Ignore
@@ -129,12 +225,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     login(role);
   };
 
+  const hasPermission = (permission: any): boolean => {
+    if (!user) return false;
+    if (user.role === 'admin') return true;
+    return user.permissions?.includes(permission) ?? false;
+  };
+
+  const hasRole = (role: RoleName | RoleName[]): boolean => {
+    if (!user) return false;
+    if (Array.isArray(role)) {
+      return role.includes(user.role);
+    }
+    return user.role === role;
+  };
+
   useEffect(() => {
     if (user && !token) {
       const newToken = generateMockJwt(user);
       setToken(newToken);
       try {
         localStorage.setItem(ROLE_STORAGE_KEY, user.role);
+        localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
         localStorage.setItem(TOKEN_STORAGE_KEY, newToken);
       } catch {
         // Ignore
@@ -146,9 +257,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     user,
     token,
     isAuthenticated: Boolean(user && token),
-    login,
+    login: login as any,
     logout,
     switchPersona,
+    hasPermission,
+    hasRole,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

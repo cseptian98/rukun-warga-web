@@ -14,8 +14,12 @@ import { AddReadingDialog } from "@/components/AddReadingDialog";
 import { PrintView } from "@/components/PrintView";
 import { useWaterSystem } from "@/hooks/useWaterSystem";
 import { calculateWaterCost } from "@/utils/billing";
+import { usePermission } from "@/hooks/usePermission";
+import { UserNav } from "@/components/UserNav";
 
 export default function WaterSystem() {
+  const { can, isAdmin } = usePermission();
+  const canManageWater = can('water:manage') || isAdmin;
   const { neighbors, setNeighbors, readings, setReadings } = useWaterSystem();
   
   const [searchTerm, setSearchTerm] = useState("");
@@ -164,6 +168,7 @@ export default function WaterSystem() {
               <Printer className="w-4 h-4 mr-2" />
               Report
             </Button>
+            <UserNav />
           </div>
         </div>
       </motion.header>
@@ -198,13 +203,15 @@ export default function WaterSystem() {
           <div className="flex-1 bg-white rounded-2xl shadow-sm border border-slate-200/60 flex flex-col overflow-hidden">
             <div className="px-5 py-4 border-b border-slate-100 flex justify-between items-center bg-white/50 backdrop-blur-sm z-10">
               <span className="uppercase text-[11px] font-bold text-slate-600 tracking-wider">Neighbors <span className="bg-indigo-100 text-indigo-700 py-0.5 px-2 rounded-full ml-2">{filteredNeighbors.length}</span></span>
-              <button 
-                onClick={() => setIsAddNeighborOpen(true)}
-                className="text-indigo-600 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100 p-2 rounded-lg transition-colors flex items-center gap-1.5"
-              >
-                <Plus className="w-4 h-4" />
-                <span className="text-[11px] font-bold uppercase tracking-wide">Add</span>
-              </button>
+              {canManageWater && (
+                <button 
+                  onClick={() => setIsAddNeighborOpen(true)}
+                  className="text-indigo-600 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100 p-2 rounded-lg transition-colors flex items-center gap-1.5"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span className="text-[11px] font-bold uppercase tracking-wide">Add</span>
+                </button>
+              )}
             </div>
             <div className="flex-1 overflow-y-auto p-3 space-y-2 relative scrollbar-thin scrollbar-thumb-slate-200">
               <AnimatePresence mode="popLayout">
