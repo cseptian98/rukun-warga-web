@@ -32,6 +32,7 @@ import Portal from './pages/Portal';
 import WaterSystem from './pages/WaterSystem';
 import Announcements from './pages/Announcements';
 import Login from './pages/Login';
+import ResidentDirectory from './pages/ResidentDirectory';
 import { UserNav } from '@/components/UserNav';
 
 function formatRupiah(amount: number): string {
@@ -1221,6 +1222,7 @@ export default function App() {
             }
           />
           <Route path="/announcements" element={<Announcements />} />
+          <Route path="/residents" element={<ResidentDirectory />} />
           <Route
             path="/treasury"
             element={
