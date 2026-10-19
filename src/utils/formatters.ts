@@ -1,19 +1,26 @@
 import { APP_CONFIG } from '@/config/constants';
 
 export function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('en-US', {
+  if (isNaN(amount) || amount === null || amount === undefined) return 'Rp 0';
+  return new Intl.NumberFormat('id-ID', {
     style: 'currency',
-    currency: 'USD', // You can change this to IDR or parameterize it
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  }).format(amount).replace('$', APP_CONFIG.CURRENCY_SYMBOL);
+    currency: 'IDR',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }).format(amount);
+}
+
+export function formatRupiah(amount: number): string {
+  return formatCurrency(amount);
 }
 
 export function formatDate(dateString: string | undefined): string {
-  if (!dateString) return 'Never';
-  return new Date(dateString).toLocaleDateString('default', {
-    year: 'numeric',
+  if (!dateString) return '-';
+  const d = new Date(dateString);
+  if (isNaN(d.getTime())) return '-';
+  return d.toLocaleDateString('id-ID', {
+    day: 'numeric',
     month: 'short',
-    day: 'numeric'
+    year: 'numeric'
   });
 }

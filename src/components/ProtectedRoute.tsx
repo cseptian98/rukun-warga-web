@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { usePermission } from '@/hooks/usePermission';
@@ -16,10 +16,11 @@ export function ProtectedRoute({
   children,
   requiredRole,
   requiredPermission,
-  redirectTo = '/',
+  redirectTo = '/login',
 }: ProtectedRouteProps) {
   const { user, isAuthenticated } = useAuth();
   const { hasPermission, hasRole } = usePermission();
+  const location = useLocation();
 
   const isAllowed = useMemo(() => {
     if (!isAuthenticated || !user) return false;
@@ -42,7 +43,7 @@ export function ProtectedRoute({
   }, [isAuthenticated, isAllowed, user]);
 
   if (!isAllowed) {
-    return <Navigate to={redirectTo} replace />;
+    return <Navigate to={redirectTo} state={{ from: location }} replace />;
   }
 
   return <>{children}</>;

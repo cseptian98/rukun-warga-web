@@ -38,7 +38,7 @@ export interface AuthState {
 }
 
 export interface AuthContextType extends AuthState {
-  login: (credentialsOrRole: LoginCredentials | RoleName) => void;
+  login: (credentialsOrRole: LoginCredentials | RoleName) => Promise<boolean>;
   logout: () => void;
   switchPersona: (role: RoleName) => void;
   hasPermission: (permission: PermissionCode) => boolean;

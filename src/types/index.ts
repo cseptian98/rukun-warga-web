@@ -1,20 +1,14 @@
-export type { RoleName, Role, PermissionCode, Permission, User, UserProfile, LoginCredentials, AuthState } from './auth';
-export interface AuthContextType {
-  user: import('./auth').User | null;
-  token: string | null;
-  isAuthenticated: boolean;
-  login: (role: import('./auth').RoleName) => void;
-  logout: () => void;
-  switchPersona: (role: import('./auth').RoleName) => void;
-  hasPermission?: (permission: import('./auth').PermissionCode) => boolean;
-  hasRole?: (role: import('./auth').RoleName | import('./auth').RoleName[]) => boolean;
-}
+export type { RoleName, Role, PermissionCode, Permission, User, UserProfile, LoginCredentials, AuthState, AuthContextType } from './auth';
 export * from './treasury';
+export type { RTUnit, Resident } from '../data/initialResidents';
 
 export interface Neighbor {
   id: string;
   name: string;
+  nik?: string;
+  rt?: string;
   address?: string;
+  phone?: string;
   joinDate?: string;
   lastReadingDate?: string;
   lastReadingVolume?: number;

@@ -31,6 +31,9 @@ import { Transaction, ResidentDue, TreasurySummary } from '@/types';
 import Portal from './pages/Portal';
 import WaterSystem from './pages/WaterSystem';
 import Announcements from './pages/Announcements';
+import Login from './pages/Login';
+import ResidentDirectory from './pages/ResidentDirectory';
+import { UserNav } from '@/components/UserNav';
 
 function formatRupiah(amount: number): string {
   return new Intl.NumberFormat('id-ID', {
@@ -240,7 +243,7 @@ const INITIAL_RESIDENT_DUES: ResidentDue[] = [
 ];
 
 export function TreasuryDashboard() {
-  const { user, switchPersona } = useAuth();
+  const { user } = useAuth();
   const { can, isAdmin, isTreasurer, isResident } = usePermission();
 
   const canWrite = can('treasury:write');
@@ -444,7 +447,17 @@ export function TreasuryDashboard() {
 
   // Filter transactions
   const filteredTransactions = useMemo(() => {
-    return transactions.filter((tx) => {
+    const baseTransactions = !canWrite
+      ? transactions.filter(
+          (tx) =>
+            tx.type === 'dues' &&
+            (tx.residentName?.toLowerCase().includes('budi') ||
+              (user?.name && tx.residentName?.toLowerCase().includes(user.name.toLowerCase())) ||
+              tx.residentName?.toLowerCase().includes('c2 no. 08'))
+        )
+      : transactions;
+
+    return baseTransactions.filter((tx) => {
       if (filterType === 'income' && tx.direction !== 'income') return false;
       if (filterType === 'expense' && tx.direction !== 'expense') return false;
       if (filterType === 'dues' && tx.type !== 'dues') return false;
@@ -460,7 +473,7 @@ export function TreasuryDashboard() {
 
       return true;
     });
-  }, [transactions, filterType, searchQuery]);
+  }, [transactions, filterType, searchQuery, canWrite, user]);
 
   // Current logged in resident's personal dues record
   const currentResidentDue = useMemo(() => {
@@ -503,40 +516,8 @@ export function TreasuryDashboard() {
             </div>
           </div>
 
-          {/* Quick Persona Switcher for Evaluation / RBAC demo */}
-          <div className="flex items-center gap-2.5 bg-slate-100/90 p-1.5 rounded-2xl border border-slate-200/70 text-xs font-semibold">
-            <span className="text-slate-400 pl-2 pr-1 text-[11px] uppercase tracking-wider">Peran Aktif:</span>
-            <button
-              onClick={() => switchPersona('admin')}
-              className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
-                isAdmin
-                  ? 'bg-indigo-600 text-white shadow-xs font-bold'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
-              }`}
-            >
-              <span>👨‍💼</span> Admin (Hartono)
-            </button>
-            <button
-              onClick={() => switchPersona('treasurer')}
-              className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
-                isTreasurer
-                  ? 'bg-amber-600 text-white shadow-xs font-bold'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
-              }`}
-            >
-              <span>👩‍💼</span> Bendahara (Ratna)
-            </button>
-            <button
-              onClick={() => switchPersona('resident')}
-              className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
-                isResident
-                  ? 'bg-emerald-600 text-white shadow-xs font-bold'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
-              }`}
-            >
-              <span>🏡</span> Warga (Budi)
-            </button>
-          </div>
+          {/* Global User Status & Logout */}
+          <UserNav />
         </div>
       </header>
 
@@ -835,11 +816,13 @@ export function TreasuryDashboard() {
                   <Receipt className="w-4 h-4" />
                 </div>
                 <h3 className="text-xl font-extrabold text-slate-800">
-                  Riwayat &amp; Buku Kas Keuangan RW
+                  {canWrite ? 'Riwayat & Buku Kas Keuangan RW' : 'Riwayat Pembayaran Iuran Pribadi'}
                 </h3>
               </div>
               <p className="text-slate-500 text-sm mt-0.5">
-                Audit trail lengkap seluruh pemasukan dan pengeluaran kas masyarakat.
+                {canWrite
+                  ? 'Audit trail lengkap seluruh pemasukan dan pengeluaran kas masyarakat.'
+                  : 'Catatan riwayat pembayaran iuran yang telah terverifikasi untuk akun Anda.'}
               </p>
             </div>
 
@@ -1229,8 +1212,17 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Portal />} />
-          <Route path="/water-system" element={<WaterSystem />} />
+          <Route path="/login" element={<Login />} />
+          <Route
+            path="/water-system"
+            element={
+              <ProtectedRoute requiredPermission="water:read">
+                <WaterSystem />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/announcements" element={<Announcements />} />
+          <Route path="/residents" element={<ResidentDirectory />} />
           <Route
             path="/treasury"
             element={

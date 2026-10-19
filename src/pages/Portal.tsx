@@ -25,9 +25,9 @@ export default function Portal() {
       title: "Resident Directory",
       description: "Complete database of RW residents and contact information.",
       icon: <Users className="w-8 h-8 text-indigo-500" />,
-      link: "#",
+      link: "/residents",
       color: "from-indigo-500/20 to-indigo-600/10",
-      active: false,
+      active: true,
     },
     {
       title: "Treasury & Dues",
