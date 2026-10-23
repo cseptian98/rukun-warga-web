@@ -1,0 +1,57 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: rukun-warga-web-service
+  labels:
+    app: rukun-warga-web
+spec:
+  selector:
+    app: rukun-warga-web
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: LoadBalancer
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rukun-warga-web-deployment
+  labels:
+    app: rukun-warga-web
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: rukun-warga-web
+  template:
+    metadata:
+      labels:
+        app: rukun-warga-web
+    spec:
+      containers:
+        - name: rukun-warga-web
+          image: your-dockerhub-username/rukun-warga-web:latest # Change this to your actual Docker image
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "200m"
+              memory: "128Mi"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 5

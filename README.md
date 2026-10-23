@@ -96,7 +96,7 @@ src/
 
 1. Navigate to the project directory:
    ```bash
-   cd KSMDashboard
+   cd rukun-warga-web
    ```
 
 2. Install dependencies:
@@ -117,4 +117,63 @@ src/
 - `npm run build`: Compiles and bundles production-ready TypeScript code.
 - `npm run preview`: Locally previews the production build.
 - `npm run lint`: Runs TypeScript compiler check (`tsc --noEmit`).
+
+---
+
+## 🚀 Deployment & Containerization
+
+The production build uses a hardened multi-stage Docker setup with an optimized Nginx server configured for Single-Page Application (SPA) routing.
+
+### 🐳 Docker Deployment
+
+1. **Build image**:
+   ```bash
+   docker build -t rukun-warga-web:latest .
+   ```
+
+2. **Run container**:
+   ```bash
+   docker run -d -p 8080:80 --name rukun-warga-web rukun-warga-web:latest
+   ```
+
+3. **Verify running instance**:
+   - Access web app: [http://localhost:8080](http://localhost:8080)
+   - Probe health endpoint: `curl http://localhost:8080/health` (returns `healthy`)
+
+4. **Tag & push to container registry**:
+   ```bash
+   docker tag rukun-warga-web:latest <your-dockerhub-username>/rukun-warga-web:latest
+   docker push <your-dockerhub-username>/rukun-warga-web:latest
+   ```
+
+### ☸️ Kubernetes Deployment
+
+Preconfigured Kubernetes manifests are available in the [`k8s/`](k8s/) directory:
+
+- [`k8s/web.yaml`](k8s/web.yaml): Deploys 2 replicas with resource limits, liveness/readiness probes, and exposes a `LoadBalancer` Service on port 80.
+- [`k8s/ingress.yaml`](k8s/ingress.yaml): Optional Ingress configuration routing `/` to the web app and `/api` to `rukun-warga-api-service`.
+
+```bash
+# 1. Update image repository in k8s/web.yaml
+# Replace 'your-dockerhub-username/rukun-warga-web:latest' with your image
+
+# 2. Apply deployment and service
+kubectl apply -f k8s/web.yaml
+
+# 3. (Optional) Apply ingress controller routing
+kubectl apply -f k8s/ingress.yaml
+
+# 4. Verify deployment status
+kubectl get pods -l app=rukun-warga-web
+kubectl get service rukun-warga-web-service
+```
+
+### 🌐 Nginx Configuration Features
+
+The custom [`nginx.conf`](nginx.conf) includes:
+- **SPA Fallback**: `try_files $uri $uri/ /index.html;` ensures seamless client-side routing on page reloads.
+- **Probe Endpoint**: `/health` endpoint for Kubernetes health checks.
+- **Cache Optimization**: Aggressive 1-year caching for fingerprinted assets (`/assets/*`) and `no-cache` on `index.html` for instant updates upon deployment.
+- **Security Headers**: Includes `X-Frame-Options`, `X-Content-Type-Options`, and `Referrer-Policy`.
+
 
